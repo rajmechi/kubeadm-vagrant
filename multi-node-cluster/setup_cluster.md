@@ -98,13 +98,15 @@ scp ca.pem kubernetes.pem kubernetes-key.pem vagrant@192.168.56.123:/tmp/
 
 
 **on all masters:**
-``
+Create directories:
+```
 {
 sudo mkdir /etc/etcd /var/lib/etcd
 mv /tmp/ca.pem /tmp/kubernetes.pem /tmp/kubernetes-key.pem /etc/etcd
 }
-``
+```
 
+Install ETCD:
 ```
 {
 yum -y install wget
@@ -114,6 +116,7 @@ sudo mv etcd-v3.3.13-linux-amd64/etcd* /usr/local/bin/
 }
 ```
 
+setup etcd service:
 ```
 {
 ETCD_NAME=$(hostname -f)
@@ -152,6 +155,8 @@ WantedBy=multi-user.target
 EOF
 }
 ```
+
+restart ETCD:
 ```
 {
 sudo systemctl daemon-reload
@@ -160,6 +165,7 @@ sudo systemctl restart etcd
 }
 ```
 
+check health:
 ```
 sudo ETCDCTL_API=3 etcdctl member list \
   --endpoints=https://127.0.0.1:2379 \
@@ -168,10 +174,12 @@ sudo ETCDCTL_API=3 etcdctl member list \
   --key=/etc/etcd/kubernetes-key.pem
 ```
 
->>>>>>>>>>  **ABOVE STEPS ARE FOR  SETTING UP ETCD**  ^^^^^^^^^^^
+>>>>>>>>>>  **ETCD SETUP IS DONE**  ^^^^^^^^^^^
 
+</br>
+</br>
 
->>>>>>>>>> **CONTROLPANE SETUP**
+>>>>>>>>>> **CONTROL PLANE and NODE  SETUP**
 
 
 **ON Master 1:**
@@ -210,15 +218,17 @@ EOF
 ```
 
 
-option 1 ( by using ```--upload-certs``` ):
+**option 1** ( by using ```--upload-certs``` ): we are not using option: 2 i.e. without ```--upload-certs```  in that case ( option: 2) we need to manually copy all certs from 1st master to other masters.
 
 
 ```
-kubeadm init --config config.yaml --upload-certs
+kubeadm init --control-plane-endpoint "kubeapi.mykubecluster.com:6443" --upload-certs --apiserver-advertise-address 192.168.56.121
 ```
 
-the above command prints steps for on how to eport kubeconfig and  the node and master join commands. 
+the above command prints steps for on how to export kubeconfig and  the node and master join commands. 
 
+</br>
+Apply CNI of your choice or below:
 
 ```
 kubectl apply -f "https://cloud.weave.works/k8s/net?k8s-version=$(kubectl version | base64 | tr -d '\n')"
@@ -229,6 +239,17 @@ kubectl get pod -n kube-system -w
 **on remaning masters and nodes:**
 
 now add other masters and nodes using join commands that you get from above ```kubeadm init xxx``` command.
+
+
+incase if you not saved/lost your command ``` kubeadm token create --print-join-command ``` 
+
+
+>>>>>>>>>> **CONTROL PLANE and NODE  SETUP IS DONE**
+
+</br>
+</br>
+
+>>>>>>>>>> **DEPLOY DASHBOARD AND A TEST APP**
 
 
 **Deploy Dashboard: run on master-1**
@@ -289,12 +310,78 @@ kubectl apply -f cdashboard-rb.yaml
 }
 ```
 
+
+
+**a) To access the dashboard:**
+
+```
+https://192.168.56.121:30007/
+```
+
+To get the token that required for dashboard:
+
 ```
 kubectl -n kube-system describe secret $(kubectl -n kube-system get secret | grep admin-user | awk '{print $1}')
 ```
 
 
 
+**b) Deploy sample app:**
+
+login into cluster using 1)
+
+```
+{
+kubectl create namespace nginx-example
+cat <<EOF4 >> nginx-app.yaml
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata: 
+  name: nginx-deployment
+  namespace: nginx-example
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 2 # tells deployment to run 2 pods matching the template
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.14.2
+        ports:
+        - containerPort: 80
+EOF4
+kubectl create -f nginx-app.yaml
+cat <<EOF3 >> nginx-app-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: nginx-example
+spec:
+  type: NodePort
+  selector:
+    app: nginx
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30009
+EOF3
+kubectl create -f nginx-app-service.yaml
+}
+```
+
+access the application at:  ```http://<any-node-ip>:30009```
+
+
+Ex.
+```
+http://192.168.56.122:30009/
+```
 
 
 

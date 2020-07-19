@@ -1,5 +1,5 @@
 
-
+**Multi master and nod setup is not fully automated. require some manual steps.
 
 my vm's:
 
@@ -11,3 +11,12 @@ my vm's:
 | 192.168.56.124  | node1.mykubecluster.com    |
 | 192.168.56.125  | node2.mykubecluster.com    |
 | 192.168.56.126  | kubeapi.mykubecluster.com  |
+
+
+
+How to deploy the cluster:
+
+
+step 1:  in this folder ```vagrant up```
+</br>
+step2: then follow [Setup ETCD, bootstrap cluster and deploy  dashboard and sample app](setup_cluster.md)
