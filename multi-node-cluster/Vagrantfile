@@ -15,8 +15,8 @@ Vagrant.configure('2') do |configmaster|
                 v.memory = "2048"
                 v.cpus = "2"
             end
-            master.vm.provision "file", source: "kube-pre-req.sh", destination: "/tmp/run-pre-req.sh"
-            master.vm.provision "file", source: "run.sh", destination: "/tmp/run.sh"
+            master.vm.provision "file", source: "scripts/kube-pre-req.sh", destination: "/tmp/run-pre-req.sh"
+            master.vm.provision "file", source: "scripts/run.sh", destination: "/tmp/run.sh"
             master.vm.provision "shell",
                 inline: "/bin/sh /tmp/run.sh"
    end
@@ -42,8 +42,8 @@ Vagrant.configure('2') do |config1|
                 v.memory = "2048"
                 v.cpus = "1"
             end
-            node.vm.provision "file", source: "kube-pre-req.sh", destination: "/tmp/run-pre-req.sh"
-            node.vm.provision "file", source: "run.sh", destination: "/tmp/run.sh"
+            node.vm.provision "file", source: "scripts/kube-pre-req.sh", destination: "/tmp/run-pre-req.sh"
+            node.vm.provision "file", source: "scripts/run.sh", destination: "/tmp/run.sh"
             node.vm.provision "shell",
                 inline: "/bin/sh /tmp/run.sh"
    end
@@ -67,7 +67,7 @@ Vagrant.configure('2') do |config2|
                 v.memory = "2048"
                 v.cpus = "1"
             end
-            lb.vm.provision "file", source: "lb.sh", destination: "/tmp/run-lb.sh"
+            lb.vm.provision "file", source: "scripts/lb.sh", destination: "/tmp/run-lb.sh"
             lb.vm.provision "shell",
                 inline: "/bin/sh /tmp/run-lb.sh"
    end
