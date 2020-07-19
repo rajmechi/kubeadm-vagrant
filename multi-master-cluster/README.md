@@ -20,3 +20,6 @@ How to deploy the cluster:
 step 1:  in this folder ```vagrant up```
 </br>
 step2: then follow [Setup ETCD, bootstrap cluster and deploy  dashboard and sample app](setup_cluster.md)
+
+
+**here followed External ETCD model. i.e. deploying ETCD manually and providing ETCD info for kubeadm (step 2:). but we are using same master nodes for ETCD deployment.
